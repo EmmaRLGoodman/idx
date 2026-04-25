@@ -67,3 +67,14 @@ print(sold_df['DaysOnMarket'].mean()) #37.34
 print(sold_df['ClosePrice'].median()) #820000
 print(sold_df['LivingArea'].median()) #1641
 print(sold_df['DaysOnMarket'].median()) #19
+
+url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=MORTGAGE30US"
+mortgage_df = pd.read_csv(url, parse_dates=['observation_date'])
+mortgage_df.columns = ['date', 'rate_30yr_fixed']
+mortgage_df['monthly'] = mortgage_df['date'].dt.to_period('M')
+mortgage_df = mortgage_df.groupby('monthly')['rate_30yr_fixed'].mean().reset_index()
+sold_df['monthly'] = pd.to_datetime(sold_df['CloseDate']).dt.to_period('M')
+sold_rate_df = sold_df.merge(mortgage_df, on='monthly', how='left')
+print(sold_rate_df['rate_30yr_fixed'].isnull().sum())
+#prints 0 as expected.
+print(sold_rate_df[['CloseDate', 'monthly', 'rate_30yr_fixed']].head())
