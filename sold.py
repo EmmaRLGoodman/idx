@@ -39,19 +39,31 @@ sold_df.hist('BathroomsTotalInteger', bins=8)
 #similar code can be used to generate all the histograms - notable outlier in ClosePrice going up to a billion on the x axis in its hist, put up on github.
 #bathrooms integer also has a clear outlier causing the chart to go to 150.
 pl.show()
-sold_df.isnull().sum().to_csv("nullsums.csv")
+null_df = sold_df.isnull().sum().to_frame()
+null_df.columns=['Sum']
+null_df['NullPercent'] = (null_df['Sum'] / 397603) * 100
+null_df = null_df.sort_values(by="NullPercent", ascending=False)
+print(null_df)
 #generates csv with missing sums for each column of the sold df (uploaded seperately on github)
 #Some key takeaways - equal number of missing latfilled and lonfilled, presumably always both present or missing
 #Some columns have very few occurences of missing data, such as PostalCode and ClosePrice - presumably data entry error
 #FireplacesTotal, TaxAnnualAmount, TaxYear, CoveredSpaces, and BuisnessType all competely missing - some make sense for resdiential, but should fireplaces be completely gone?
 #Of the not completely missing ones, BuildingAreaTotal, BuilderName, BasementYN, WaterfrontYN, MiddleorJuniorSchool, LotSizeDimensions,
 #OriginatingSystemName, OriginatingSystemSubName, BuyerAgencyCompensationType, BuyerAgencyCompensation, and CoBuyerAgentFirstName all have low percentages of appearance
-
-url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=MORTGAGE30US"
-mortgage_df = pd.read_csv(url, parse_dates=['observation_date'])
-mortgage_df.columns = ['date', 'rate_30yr_fixed']
-mortgage_df['monthly'] = mortgage_df['date'].dt.to_period('M')
-mortgage_df = mortgage_df.groupby('monthly')['rate_30yr_fixed'].mean().reset_index()
-sold_df['monthly'] = pd.to_datetime(sold_df['CloseDate']).dt.to_period('M')
-sold_rate_df = sold_df.merge(mortgage_df, on='monthly', how='left')
-print(sold_rate_df['rate_30yr_fixed'].isnull().sum()) #prints 0 as expected
+sold_df = sold_df.drop(columns=["TaxYear", "FireplacesTotal", "TaxAnnualAmount", "AboveGradeFinishedArea", "ElementarySchoolDistrict", "CoveredSpaces", "MiddleOrJuniorSchoolDistrict", "BusinessType", "WaterfrontYN", "BelowGradeFinishedArea", "BasementYN", "LotSizeDimensions", "BuilderName", "BuildingAreaTotal", "CoBuyerAgentFirstName", "OriginatingSystemName", "OriginatingSystemSubName"])
+#cuts out all the cols with over 90% missing
+print(sold_df['ClosePrice'].max()) #989500000
+print(sold_df['LivingArea'].max()) #17021321
+print(sold_df['DaysOnMarket'].max()) #12430
+print(sold_df['ClosePrice'].min()) #0
+print(sold_df['LivingArea'].min()) #0
+print(sold_df['DaysOnMarket'].min()) #-288
+print(sold_df['ClosePrice'].quantile([.25, .75])) #575000, 1300000
+print(sold_df['LivingArea'].quantile([.25, .75])) #1247, 2217
+print(sold_df['DaysOnMarket'].quantile([.25, .75])) #8, 48
+print(sold_df['ClosePrice'].mean()) #1185616.36
+print(sold_df['LivingArea'].mean()) #1904.35
+print(sold_df['DaysOnMarket'].mean()) #37.34
+print(sold_df['ClosePrice'].median()) #820000
+print(sold_df['LivingArea'].median()) #1641
+print(sold_df['DaysOnMarket'].median()) #19
