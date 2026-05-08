@@ -78,3 +78,24 @@ sold_rate_df = sold_df.merge(mortgage_df, on='monthly', how='left')
 print(sold_rate_df['rate_30yr_fixed'].isnull().sum())
 #prints 0 as expected.
 print(sold_rate_df[['CloseDate', 'monthly', 'rate_30yr_fixed']].head())
+
+#week 4/5
+
+sold_df['CloseDate'] = pd.to_datetime(sold_df['CloseDate'])
+sold_df['ListingContractDate'] = pd.to_datetime(sold_df['ListingContractDate'])
+sold_df['PurchaseContractDate'] = pd.to_datetime(sold_df['PurchaseContractDate'])
+sold_df['listing_after_close_flag'] = (sold_df['ListingContractDate']>sold_df['CloseDate'])
+sold_df['purchase_after_close_flag'] = (sold_df['PurchaseContractDate']>sold_df['CloseDate'])
+sold_df['purchase_after_listing_flag'] = (sold_df['PurchaseContractDate']<sold_df['ListingContractDate'])
+sold_df['negative_timeline_flag'] = (sold_df['listing_after_close_flag'] | sold_df['purchase_after_close_flag'] | sold_df['purchase_after_listing_flag'])
+print(sold_df[sold_df['negative_timeline_flag']].shape) #501 flagged rows
+print(sold_df.shape) #397603 before transform
+sold_df = sold_df[(sold_df['ClosePrice']>0) & (sold_df['LivingArea']>0) & (sold_df['DaysOnMarket']>=0) & (sold_df['BathroomsTotalInteger']>=0) & (sold_df['BedroomsTotal']>=0)]
+print(sold_df.shape) #397123 after transform
+sold_df['null_geo_flag'] = ((sold_df['Latitude'] == 0) | (sold_df['Latitude'] is None) | (sold_df['Longitude'] == 0) | (sold_df['Longitude'] is None))
+sold_df['invalid_long_flag'] = sold_df['Longitude'] > 0
+print(sold_df[sold_df['null_geo_flag']].shape) #25 flagged rows
+print(sold_df[sold_df['invalid_long_flag']].shape) #29 flagged rows
+sold_df = sold_df[(~sold_df['negative_timeline_flag']) & (~sold_df['null_geo_flag']) & (~sold_df['invalid_long_flag'])]
+print(sold_df.shape) #396569 rows after removing flagged rows
+sold_df = sold_df.drop(columns=['negative_timeline_flag', 'null_geo_flag', 'invalid_long_flag', 'listing_after_close_flag', 'purchase_after_close_flag', 'purchase_after_listing_flag'])
