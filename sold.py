@@ -99,3 +99,13 @@ print(sold_df[sold_df['invalid_long_flag']].shape) #29 flagged rows
 sold_df = sold_df[(~sold_df['negative_timeline_flag']) & (~sold_df['null_geo_flag']) & (~sold_df['invalid_long_flag'])]
 print(sold_df.shape) #396569 rows after removing flagged rows
 sold_df = sold_df.drop(columns=['negative_timeline_flag', 'null_geo_flag', 'invalid_long_flag', 'listing_after_close_flag', 'purchase_after_close_flag', 'purchase_after_listing_flag'])
+sold_df['PriceRatio'] = sold_df['ClosePrice'] / sold_df['OriginalListPrice']
+sold_df['PricePerSqFt'] = sold_df['ClosePrice'] / sold_df['LivingArea']
+sold_df['ListingToContract'] = sold_df['PurchaseContractDate'] - sold_df['ListingContractDate']
+sold_df['ContractToClose'] = sold_df['CloseDate'] - sold_df['PurchaseContractDate']
+print(sold_df[['PriceRatio', 'PricePerSqFt', 'ListingToContract', 'ContractToClose', 'CountyOrParish']].groupby(by='CountyOrParish').describe())
+print(sold_df[['PriceRatio', 'PricePerSqFt', 'ListingToContract', 'ContractToClose', 'MLSAreaMajor']].groupby(by='MLSAreaMajor').describe())
+print(sold_df[['PriceRatio', 'PricePerSqFt', 'ListingToContract', 'ContractToClose', 'PropertyType']].groupby(by='PropertyType').describe())
+print(sold_df[['PriceRatio', 'PricePerSqFt', 'ListingToContract', 'ContractToClose', 'PropertySubType']].groupby(by='PropertySubType').describe())
+print(sold_df[['PriceRatio', 'PricePerSqFt', 'ListingToContract', 'ContractToClose', 'ListOfficeName']].groupby(by='ListOfficeName').describe())
+print(sold_df[['PriceRatio', 'PricePerSqFt', 'ListingToContract', 'ContractToClose', 'BuyerOfficeName']].groupby(by='BuyerOfficeName').describe())
